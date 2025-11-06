@@ -1,0 +1,41 @@
+use schoolDB;
+
+db.student.insertMany([
+   { name: "Ram", branch: "Computer", cgpa: 8.5, native_city: "Pune", marks: 85 },
+   { name: "Sita", branch: "IT", cgpa: 9.0, native_city: "Mumbai", marks: 90 },
+   { name: "Mohan", branch: "Computer", cgpa: 7.0, native_city: "Mumbai", marks: 70 },
+   { name: "Geeta", branch: "Electrical", cgpa: 6.5, native_city: "Delhi", marks: 65 },
+   { name: "Raju", branch: "Computer", cgpa: 9.0, native_city: "Chennai", marks: 92 }
+]);
+
+db.student.find().pretty();
+
+db.student.find({ $or: [ { cgpa: 9 }, { branch: "Computer" } ] }).pretty();
+
+db.student.find({ branch: { $ne: "IT" } }).pretty();
+
+db.student.find({ $and: [ { cgpa: 7 }, { native_city: "Mumbai" } ] }).pretty();
+
+db.student.find({ $or: [ { cgpa: { $ne: 9 } }, { branch: { $ne: "Computer" } } ] }).pretty();
+
+db.student.updateOne(
+   { name: "Ram" },
+   { $set: { marks: 95 } }
+);
+
+db.student.deleteOne({ name: "Sita" });
+
+db.student.save({
+   name: "Anita",
+   branch: "Mechanical",
+   cgpa: 8.2,
+   native_city: "Bangalore",
+   marks: 82
+});
+
+var maxCGPA = db.student.find({ branch: "Computer" }).sort({ cgpa: -1 }).limit(1).toArray()[0].cgpa;
+
+db.student.find({
+   branch: "Computer",
+   cgpa: maxCGPA
+}).pretty();

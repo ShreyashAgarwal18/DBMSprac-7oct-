@@ -1,0 +1,53 @@
+-- safe re-run: drop db if exists
+DROP DATABASE IF EXISTS assg6;
+CREATE DATABASE assg6;
+USE assg6;
+
+CREATE TABLE `Library` (
+  `BookID` INT PRIMARY KEY,
+  `BookName` VARCHAR(100),
+  `Author` VARCHAR(100),
+  `Price` DECIMAL(10,2)
+);
+
+CREATE TABLE `Library_Audit` (
+  `AuditID` INT AUTO_INCREMENT PRIMARY KEY,
+  `BookID` INT,
+  `BookName` VARCHAR(100),
+  `Author` VARCHAR(100),
+  `Price` DECIMAL(10,2),
+  `ActionType` VARCHAR(20),
+  `ActionDate` DATETIME
+);
+
+INSERT INTO `Library` (`BookID`,`BookName`,`Author`,`Price`) VALUES
+(1,'DBMS Concepts','Korth',550.00),
+(2,'Operating Systems','Galvin',600.00),
+(3,'Computer Networks','Tanenbaum',700.00);
+
+DELIMITER $$
+CREATE TRIGGER `before_library_update`
+BEFORE UPDATE ON `Library`
+FOR EACH ROW
+BEGIN
+  INSERT INTO `Library_Audit` (`BookID`,`BookName`,`Author`,`Price`,`ActionType`,`ActionDate`)
+  VALUES (OLD.BookID, OLD.BookName, OLD.Author, OLD.Price, 'UPDATE', NOW());
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER `before_library_delete`
+BEFORE DELETE ON `Library`
+FOR EACH ROW
+BEGIN
+  INSERT INTO `Library_Audit` (`BookID`,`BookName`,`Author`,`Price`,`ActionType`,`ActionDate`)
+  VALUES (OLD.BookID, OLD.BookName, OLD.Author, OLD.Price, 'DELETE', NOW());
+END$$
+DELIMITER ;
+
+-- test triggers
+UPDATE `Library` SET `Price` = 650.00 WHERE `BookID` = 2;
+DELETE FROM `Library` WHERE `BookID` = 3;
+
+SELECT * FROM `Library`;
+SELECT * FROM `Library_Audit`;

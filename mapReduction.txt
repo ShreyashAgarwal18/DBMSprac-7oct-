@@ -1,0 +1,26 @@
+use school;
+
+db.student.insertMany([
+   { id: 1, name: "Amit", div: "A", s1: 80, s2: 85, s3: 78, s4: 92, s5: 88 },
+   { id: 2, name: "Sneha", div: "A", s1: 90, s2: 87, s3: 93, s4: 95, s5: 89 },
+   { id: 3, name: "Ravi", div: "B", s1: 70, s2: 75, s3: 72, s4: 68, s5: 80 },
+   { id: 4, name: "Priya", div: "B", s1: 85, s2: 80, s3: 84, s4: 88, s5: 90 },
+   { id: 5, name: "Nina", div: "C", s1: 92, s2: 95, s3: 94, s4: 96, s5: 98 }
+]);
+
+var mapFunction = function() {
+   var total = this.s1 + this.s2 + this.s3 + this.s4 + this.s5;
+   emit(this.name, total);
+};
+
+var reduceFunction = function(key, values) {
+   return Array.sum(values);
+};
+
+db.student.mapReduce(
+   mapFunction,
+   reduceFunction,
+   { out: "student_totals" }
+);
+
+db.student_totals.find().sort({ value: -1 }).limit(1);

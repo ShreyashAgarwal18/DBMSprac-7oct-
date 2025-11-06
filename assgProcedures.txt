@@ -1,0 +1,86 @@
+-- Create and use the database
+CREATE DATABASE assg3;
+USE assg3;
+
+-- Create Borrower table
+CREATE TABLE Borrower (
+    Rollin INT PRIMARY KEY,
+    Name VARCHAR(50),
+    DateofIssue DATE,
+    NameofBook VARCHAR(100),
+    Status CHAR(1)   -- 'I' = Issued, 'R' = Returned
+);
+
+-- Create Fine table
+CREATE TABLE Fine (
+    Roll_no INT,
+    Date_f DATE,
+    Amt DECIMAL(10,2),
+    FOREIGN KEY (Roll_no) REFERENCES Borrower(Rollin)
+);
+
+-- Insert sample data
+INSERT INTO Borrower VALUES 
+(101, 'Shreyash', '2025-10-10', 'DBMS Concepts', 'I'),
+(102, 'Aarav', '2025-10-20', 'Operating Systems', 'I'),
+(103, 'Riya', '2025-09-05', 'C++ Programming', 'I'),
+(104, 'Neha', '2025-10-28', 'Computer Networks', 'I');
+
+-- Create the procedure
+DELIMITER $$
+
+CREATE PROCEDURE returnBookSimple(
+    IN p_roll INT,
+    IN p_book VARCHAR(100)
+)
+BEGIN
+    DECLARE issue_date DATE;
+    DECLARE days INT;
+    DECLARE fine DECIMAL(10,2) DEFAULT 0;
+
+    -- Get the issue date
+    SELECT DateofIssue INTO issue_date
+    FROM Borrower
+    WHERE Rollin = p_roll AND NameofBook = p_book;
+
+    -- Calculate number of days since issue
+    SET days = DATEDIFF(CURDATE(), issue_date);
+
+    -- Calculate fine
+    IF days > 30 THEN 
+        SET fine = (days - 30) * 50;  -- fine after 30 days
+    ELSEIF days >= 15 THEN 
+        SET fine = (days - 15) * 5;   -- fine after 15 days
+    ELSE
+        SET fine = 0;
+    END IF;
+
+    -- Update borrower status
+    UPDATE Borrower 
+    SET Status = 'R'
+    WHERE Rollin = p_roll AND NameofBook = p_book;
+
+    -- Insert fine if applicable
+    IF fine > 0 THEN
+        INSERT INTO Fine VALUES (p_roll, CURDATE(), fine);
+    END IF;
+
+    -- Display result
+    SELECT CONCAT('Days: ', days, ', Fine: Rs ', fine) AS Result;
+END$$
+
+DELIMITER ;
+
+-- Disable safe mode (optional for update)
+SET SQL_SAFE_UPDATES = 0;
+
+-- Reset data (optional)
+DELETE FROM Fine;
+UPDATE Borrower SET Status = 'I';
+ 
+-- Call the procedure
+CALL returnBookSimple(101, 'DBMS Concepts');
+
+-- To check updated tables
+SELECT * FROM Borrower;
+SELECT * FROM Fine;

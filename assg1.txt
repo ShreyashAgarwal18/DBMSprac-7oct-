@@ -1,0 +1,254 @@
+create database assg1;
+use assg1;
+
+create table Employee(
+e_id int primary key,
+name varchar(50),
+street  varchar(50),
+city varchar(50)
+);
+
+create table company(
+company_name varchar(50) primary key,
+city varchar(50)
+);
+
+create table works(
+e_id int,
+company_name varchar(50),
+salary decimal(10,2),
+primary key (e_id, company_name),
+foreign key (e_id) references Employee(e_id),
+foreign key (company_name) references company(company_name)
+);
+
+create table manages(
+e_id int,
+dept_name varchar(50),
+primary key (e_id, dept_name),
+foreign key (e_id) references Employee(e_id)
+);
+
+insert into Employee values
+(1, 'ravi', 'mg road', 'delhi'),
+(2, 'neha', 'park street', 'kolkata'),
+(3, 'arjun', 'fc road', 'pune'),
+(4, 'priya', 'brigade road', 'bangalore'),
+(5, 'amit', 'carter road', 'mumbai');
+
+select * from Employees;
+
+insert into company values
+('abc', 'mumbai'),
+('XYZ', 'Bangalore'),
+('TechSoft', 'Pune'),
+('Infocare', 'Delhi');
+
+INSERT INTO Works VALUES
+(1, 'ABC', 60000),
+(2, 'XYZ', 45000),
+(3, 'ABC', 52000),
+(4, 'TechSoft', 70000),
+(5, 'Infocare', 48000);
+
+INSERT INTO Manages VALUES
+(1, 'Sales'),
+(2, 'Marketing'),
+(3, 'HR'),
+(4, 'Finance'),
+(5, 'Operations');
+
+
+select * from manages;
+
+create view abc_emp as
+select e.e_id, e.name, w.salary, w.company_name
+from Employee e
+join works w on e.e_id = w.e_id
+where w.company_name = 'abc';
+
+select * from abc_emp;
+
+ALTER VIEW abc_emp AS
+SELECT e.e_id, e.name, w.salary, w.company_name
+FROM Employee e
+JOIN Works w ON e.e_id = w.e_id
+WHERE w.company_name = 'ABC' AND w.salary > 50000;
+
+select * from abc_emp;
+
+insert into Employee values (6, 'karan', 'link road', 'mumbai');
+insert into works values (6, 'abc', 55000);
+
+update works set salary = 65000 where e_id = 6 and company_name = 'abc';
+ 
+select * from abc_emp;
+
+delete from works where e_id = 6 and company_name = 'abc';
+select * from abc_emp;
+
+create index idx_emp_city on Employee(city);
+create index idx_company_city on company(city);
+
+show index from Employee;
+show index from company;
+
+DROP INDEX idx_emp_city ON Employee;
+DROP INDEX idx_company_city ON company;
+
+alter table Employee modify e_id int auto_increment;
+
+SHOW CREATE TABLE Works;
+
+ALTER TABLE works DROP FOREIGN KEY works_ibfk_1;
+ALTER TABLE manages DROP FOREIGN KEY manages_ibfk_1;
+
+ALTER TABLE Employee MODIFY e_id INT AUTO_INCREMENT;
+
+ALTER TABLE works
+  ADD CONSTRAINT works_ibfk_1 FOREIGN KEY (e_id) REFERENCES Employee(e_id);
+
+ALTER TABLE manages
+  ADD CONSTRAINT manages_ibfk_1 FOREIGN KEY (e_id) REFERENCES Employee(e_id);
+
+insert into Employee(street, city) values ('new lane', 'chennai');
+INSERT INTO Employee (e_id, name, street) VALUES (200, 'Test User', 'Test Street');
+
+select e_id, name from Employee;
+
+select e.name
+from Employee e
+join manages m on e.e_id = m.e_id;
+
+select distinct city from company;
+
+UPDATE Employee
+SET street = 'New Updated Street', city = 'Mumbai'
+WHERE e_id = 12345;
+
+SELECT * FROM Employee WHERE e_id = 12345;
+
+UPDATE Works
+SET salary = salary + 10000
+WHERE company_name = 'Amazon'; 
+
+SELECT * FROM Works WHERE company_name = 'Amazon';
+
+delete from works where salary between 20000 and 50000;
+
+SELECT * FROM Works;
+
+select company_name
+from company
+where city like 'P%';
+
+SELECT DISTINCT E.*
+FROM Employee E
+JOIN Works W ON E.e_id = W.e_id
+WHERE W.company_name IN ('Amazon','Flipkart','Google');
+
+select avg(salary) as avg_abc
+from works
+where company_name = 'abc';
+
+select count(*) as total_emp
+from works
+where company_name = 'abc';
+
+SELECT MAX(salary) AS max_salary_google, MIN(salary) AS min_salary_google
+FROM Works
+WHERE company_name = 'abc';
+
+SELECT SUM(salary) AS total_salary_abc_corp
+FROM Works
+WHERE company_name = 'abc';
+
+
+SELECT * FROM Company
+ORDER BY company_name ASC, city DESC;
+
+select e.name 
+from Employee e
+join works w on e.e_id = w.e_id
+where company_name = 'abc'
+union
+select e.name 
+from Employee e
+join works w on e.e_id = w.e_id
+where company_name = 'xyz';
+
+
+select e.name 
+from Employee e
+join works w on e.e_id = w.e_id
+where company_name = 'abc'
+union all
+select e.name 
+from Employee e
+join works w on e.e_id = w.e_id
+where company_name = 'xyz';
+
+SELECT E.*
+FROM Employee E
+INNER JOIN Manages M ON E.e_id = M.e_id;
+
+SELECT E.*
+FROM Employee E
+LEFT JOIN Manages M ON E.e_id = M.e_id
+WHERE M.e_id IS NULL;
+
+
+SELECT * FROM Employee
+WHERE e_id IN (
+    SELECT e_id FROM Works
+    WHERE company_name IN ('abc', 'xyz')
+);
+
+SELECT * FROM Employee
+WHERE e_id IN (
+    SELECT e_id FROM Manages
+);
+
+SELECT company_name, COUNT(e_id) AS emp_count
+FROM Works
+GROUP BY company_name;
+
+SELECT * FROM Employee
+WHERE e_id IN (
+    SELECT e_id FROM Works
+    WHERE salary > (
+        SELECT AVG(salary) FROM Works
+        WHERE company_name = 'abc'
+    )
+);
+
+
+SELECT * FROM Employee
+NATURAL JOIN Manages;
+
+SELECT * FROM Manages CROSS JOIN works;
+
+SELECT E.* FROM Employee E
+LEFT JOIN Manages M ON E.e_id = M.e_id
+WHERE M.e_id IS NULL;
+
+SELECT E.*, C.*
+FROM Employee E
+RIGHT JOIN works W ON E.e_id = W.e_id
+RIGHT JOIN company C ON W.company_name = C.company_name;
+
+SELECT E.*, C.*
+FROM Employee E
+JOIN works W ON E.e_id = W.e_id
+JOIN company C ON W.company_name = C.company_name
+WHERE C.city = 'Delhi'
+UNION
+SELECT E.*, C.*
+FROM Employee E
+JOIN works W ON E.e_id = W.e_id
+JOIN company C ON W.company_name = C.company_name
+WHERE C.city = 'Mumbai';
+
+
+
+

@@ -1,0 +1,36 @@
+-- 1. Create the table
+CREATE TABLE Stud_Marks (
+    Roll INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(50),
+    total_marks INT
+);
+
+-- 2. Insert sample data
+INSERT INTO Stud_Marks (Name, total_marks) VALUES
+('Amit', 1450),
+('Sneha', 1200),
+('Ravi', 950),
+('Priya', 870),
+('Nina', 990);
+
+-- 3. Create stored procedure to categorize students
+DELIMITER $$
+
+CREATE PROCEDURE proc_Grade()
+BEGIN
+    SELECT
+        Roll,
+        Name,
+        CASE
+            WHEN total_marks BETWEEN 990 AND 1500 THEN 'Distinction'
+            WHEN total_marks BETWEEN 900 AND 989 THEN 'First Class'
+            WHEN total_marks BETWEEN 825 AND 899 THEN 'Higher Second Class'
+            ELSE 'No Class'
+        END AS Class
+    FROM Stud_Marks;
+END$$
+
+DELIMITER ;
+
+-- 4. Call the procedure
+CALL proc_Grade();

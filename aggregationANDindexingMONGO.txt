@@ -1,0 +1,52 @@
+use schoolDB;
+
+db.student.insertMany([
+   { roll_no: 7342, prn: "PRN001", name: "Gaurav", branch: "Computer", marks: { TOC: 85, DBMS: 90, OS: 88 }, cgpa: 8.5, native_city: "Pune" },
+   { roll_no: 7343, prn: "PRN002", name: "Uday", branch: "IT", marks: { TOC: 92, DBMS: 85, OS: 80 }, cgpa: 9.0, native_city: "Mumbai" },
+   { roll_no: 7344, prn: "PRN003", name: "Rishabh", branch: "Computer", marks: { TOC: 78, DBMS: 82, OS: 85 }, cgpa: 7.5, native_city: "Mumbai" },
+   { roll_no: 7345, prn: "PRN004", name: "Yakeein", branch: "Electrical", marks: { TOC: 70, DBMS: 75, OS: 72 }, cgpa: 6.8, native_city: "Delhi" },
+   { roll_no: 7346, prn: "PRN005", name: "Sushant", branch: "Computer", marks: { TOC: 95, DBMS: 88, OS: 91 }, cgpa: 9.2, native_city: "Chennai" },
+   { roll_no: 7347, prn: "PRN006", name: "Subhi", branch: "Mechanical", marks: { TOC: 60, DBMS: 70, OS: 65 }, cgpa: 6.5, native_city: "Bangalore" },
+   { roll_no: 7348, prn: "PRN007", name: "Vanshika", branch: "IT", marks: { TOC: 85, DBMS: 87, OS: 80 }, cgpa: 8.3, native_city: "Mumbai" },
+   { roll_no: 7349, prn: "PRN008", name: "Raj", branch: "Electrical", marks: { TOC: 75, DBMS: 78, OS: 70 }, cgpa: 7.2, native_city: "Pune" },
+   { roll_no: 7350, prn: "PRN009", name: "Sahil", branch: "Computer", marks: { TOC: 88, DBMS: 90, OS: 92 }, cgpa: 8.9, native_city: "Hyderabad" },
+   { roll_no: 7351, prn: "PRN010", name: "Rajat", branch: "Mechanical", marks: { TOC: 65, DBMS: 68, OS: 60 }, cgpa: 6.3, native_city: "Chennai" },
+   { roll_no: 7352, prn: "PRN011", name: "Meera", branch: "IT", marks: { TOC: 90, DBMS: 92, OS: 89 }, cgpa: 9.1, native_city: "Delhi" },
+   { roll_no: 7353, prn: "PRN012", name: "Kabir", branch: "Electrical", marks: { TOC: 72, DBMS: 74, OS: 68 }, cgpa: 6.9, native_city: "Mumbai" },
+   { roll_no: 7354, prn: "PRN013", name: "Anika", branch: "Computer", marks: { TOC: 91, DBMS: 93, OS: 95 }, cgpa: 9.3, native_city: "Bangalore" },
+   { roll_no: 7355, prn: "PRN014", name: "Tara", branch: "IT", marks: { TOC: 83, DBMS: 85, OS: 80 }, cgpa: 8.1, native_city: "Pune" },
+   { roll_no: 7356, prn: "PRN015", name: "Nikhil", branch: "Mechanical", marks: { TOC: 67, DBMS: 70, OS: 65 }, cgpa: 6.6, native_city: "Hyderabad" }
+]);
+
+db.student.find().pretty();
+
+db.student.aggregate([{ $group: { _id: "$branch", strength: { $sum: 1 } } }]);
+
+db.student.aggregate([
+   { $sort: { "marks.TOC": -1 } },
+   { $group: { _id: "$branch", topper: { $first: "$name" }, topper_marks_TOC: { $first: "$marks.TOC" } } }
+]);
+
+db.student.aggregate([
+   { $facet: { 
+       maxTOC: [{ $sort: { "marks.TOC": -1 } }, { $limit: 1 }],
+       maxDBMS: [{ $sort: { "marks.DBMS": -1 } }, { $limit: 1 }],
+       maxOS: [{ $sort: { "marks.OS": -1 } }, { $limit: 1 }]
+   } }
+]);
+
+db.student.aggregate([
+   { $group: { 
+       _id: null,
+       avg_marks_TOC: { $avg: "$marks.TOC" },
+       avg_marks_DBMS: { $avg: "$marks.DBMS" },
+       avg_marks_OS: { $avg: "$marks.OS" }
+   } }
+]);
+
+db.student.aggregate([{ $sort: { "marks.TOC": 1 } }, { $limit: 1 }]);
+
+db.student.createIndex({ roll_no: 1 });
+db.student.createIndex({ prn: 1 });
+db.student.getIndexes();
+db.student.dropIndex({ roll_no: 1 });
