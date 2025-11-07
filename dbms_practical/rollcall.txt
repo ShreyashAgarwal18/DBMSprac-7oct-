@@ -1,0 +1,179 @@
+create table n_rollcall (
+rollno int primary key,
+name varchar(100),
+branch varchar(50),
+year int,
+attendance_percentage int,
+event varchar(50)
+);
+
+create table o_rollcall (
+rollno int primary key,
+name varchar(100),
+branch varchar(50),
+year int,
+attendance_percentage int,
+event varchar(50)
+);
+
+insert into n_rollcall values
+(1,'Amit','Computer',2,50,'Cultural'),
+(2,'Neha','IT',1,65,'Sports'),
+(3,'Ravi','Computer',3,72,'Cultural'),
+(4,'Karan','Mechanical',2,40,'Cultural'),
+(5,'Sneha','Computer',1,90,'Seminar');
+
+insert into o_rollcall values
+(1,'Amit','Computer',2,70,'Seminar'),
+(6,'Priya','IT',3,85,'Cultural'),
+(7,'Rahul','Civil',2,55,'Sports');
+
+delimiter //
+
+create procedure increase_cultural_attendance()
+begin
+declare rows_updated int default 0;
+
+update n_rollcall
+set attendance_percentage = attendance_percentage + 20
+where event = 'Cultural';
+
+set rows_updated = row_count();
+
+select concat('Total Rows Updated: ', rows_updated) as result;
+end //
+
+delimiter ;
+
+call increase_cultural_attendance();
+
+delimiter //
+
+create procedure show_computer_students()
+begin
+declare v_roll int;
+declare v_name varchar(100);
+declare v_branch varchar(50);
+declare v_year int;
+declare v_attendance int;
+declare v_event varchar(50);
+
+declare finished int default 0;
+
+declare comp_cursor cursor for
+select rollno, name, branch, year, attendance_percentage, event
+from n_rollcall
+where branch = 'Computer';
+
+declare continue handler for not found
+set finished = 1;
+
+open comp_cursor;
+
+read_loop: loop
+fetch comp_cursor into v_roll, v_name, v_branch, v_year, v_attendance, v_event;
+
+if finished = 1 then
+leave read_loop;
+end if;
+
+select v_roll as rollno, v_name as name, v_branch as branch,
+v_year as year, v_attendance as attendance, v_event as event;
+end loop;
+
+close comp_cursor;
+end //
+
+delimiter ;
+
+delimiter //
+
+create procedure show_high_attendance()
+begin
+declare v_roll int;
+declare v_name varchar(100);
+declare v_branch varchar(50);
+declare v_year int;
+declare v_attendance int;
+declare v_event varchar(50);
+
+declare finished int default 0;
+declare high_cursor cursor for
+select rollno, name, branch, year, attendance_percentage, event
+from n_rollcall
+where attendance_percentage > 60;
+
+declare continue handler for not found
+set finished = 1;
+
+drop temporary table if exists temp_high_attendance;
+create temporary table temp_high_attendance (
+rollno int,
+name varchar(100),
+branch varchar(50),
+year int,
+attendance int,
+event varchar(50)
+);
+
+open high_cursor;
+
+read_loop: loop
+fetch high_cursor into v_roll, v_name, v_branch, v_year, v_attendance, v_event;
+
+if finished = 1 then
+leave read_loop;
+end if;
+
+insert into temp_high_attendance
+values (v_roll, v_name, v_branch, v_year, v_attendance, v_event);
+end loop;
+
+close high_cursor;
+
+select * from temp_high_attendance;
+end //
+
+delimiter ;
+
+delimiter //
+
+create procedure merge_o_to_n()
+begin
+declare v_roll int;
+declare v_name varchar(100);
+declare v_branch varchar(50);
+declare v_year int;
+declare v_attendance int;
+declare v_event varchar(50);
+declare finished int default 0;
+
+declare merge_cursor cursor for
+select rollno, name, branch, year, attendance_percentage, event
+from o_rollcall;
+
+declare continue handler for not found
+set finished = 1;
+
+open merge_cursor;
+
+read_loop: loop
+fetch merge_cursor into v_roll, v_name, v_branch, v_year, v_attendance, v_event;
+
+if finished = 1 then
+leave read_loop;
+end if;
+
+if not exists (select 1 from n_rollcall where rollno = v_roll) then
+insert into n_rollcall values (v_roll, v_name, v_branch, v_year, v_attendance, v_event);
+end if;
+
+end loop;
+
+close merge_cursor;
+
+end //
+
+delimiter ;
+
+call merge_o_to_n();
